@@ -4,7 +4,7 @@
 //      Modify the list in memory (remove, update, add).
 //      Save the whole list back to file (e.g., saveBooks).
 
-package service;
+package service_interface;
 
 import java.util.List;
 import model.Book;
@@ -12,7 +12,7 @@ import model.BorrowRecord;
 import model.Member;
 
 public interface FileIOInterface {
-    
+
     // Load all books from a file and return as a List
     List<Book> loadBooks(String filePath);
 

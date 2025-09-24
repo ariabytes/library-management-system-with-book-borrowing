@@ -1,4 +1,4 @@
-package service;
+package service_interface;
 
 import model.BorrowRecord;
 import java.util.List;
@@ -6,7 +6,8 @@ import java.time.LocalDate;
 
 public interface BorrowServiceInterface {
 
-    // Borrow a book: returns true if successful (book available, member eligible, etc.)
+    // Borrow a book: returns true if successful (book available, member eligible,
+    // etc.)
     boolean borrowBook(String memberId, String bookId, LocalDate borrowDate);
 
     // Return a book: returns true if successful (book was borrowed by member, etc.)

@@ -1,0 +1,3 @@
+B001,The Hobbit,J.R.R. Tolkien,Fantasy,borrowed,1
+B002,1984,George Orwell,Dystopian,available,0
+B003,Clean Code,Robert C. Martin,Programming,available,0
