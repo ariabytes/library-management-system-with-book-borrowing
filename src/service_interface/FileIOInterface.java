@@ -12,22 +12,21 @@ import model.BorrowRecord;
 import model.Member;
 
 public interface FileIOInterface {
+    // BOOKS
+    void saveBooks(String filename, List<Book> books);
+    void appendBook(String filename, Book book);
+    List<Book> loadBooks(String filename);
+    void deleteBook(String filename, String bookId);
 
-    // Load all books from a file and return as a List
-    List<Book> loadBooks(String filePath);
+    // MEMBERS
+    void saveMembers(String filename, List<Member> members);
+    void appendMember(String filename, Member member);
+    List<Member> loadMembers(String filename);
+    void deleteMember(String filename, String memberId);
 
-    // Save all books to a file
-    void saveBooks(String filePath, List<Book> books);
-
-    // Load all members from a file and return as a List
-    List<Member> loadMembers(String filePath);
-
-    // Save all members to a file
-    void saveMembers(String filePath, List<Member> members);
-
-    // Load all borrow records from a file and return as a List
-    List<BorrowRecord> loadBorrowRecords(String filePath);
-
-    // Save all borrow records to a file
-    void saveBorrowRecords(String filePath, List<BorrowRecord> borrowRecords);
+    // BORROW RECORDS
+    void saveBorrowRecords(String filename, List<BorrowRecord> records);
+    void appendBorrowRecord(String filename, BorrowRecord record);
+    List<BorrowRecord> loadBorrowRecords(String filename);
+    void deleteBorrowRecord(String filename, String memberId, String bookId);
 }

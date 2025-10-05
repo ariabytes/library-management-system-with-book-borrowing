@@ -16,6 +16,9 @@ public interface BookServiceInterface {
     List<Book> sortBooksByAuthor(boolean ascending);
     List<Book> sortBooksByCategory(boolean ascending);
     List<Book> sortBooksByPopularity(boolean ascending);
+    
+    boolean addReservation(String bookId, String memberId, String memberName);
+    boolean cancelReservation(String bookId, String memberId);
 
     // NEW: Top N most borrowed books using a heap
     List<Book> getMostBorrowedBooks(int n);

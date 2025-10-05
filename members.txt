@@ -1,4 +1,2 @@
-M001,Alice
-M002,Bob
-M001,Alice
-M002,Bob
+M1759649224479,harvey,[B001],[B003]
+M1759649382614,Arianne,[none],[none]

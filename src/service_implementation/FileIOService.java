@@ -9,35 +9,14 @@ import java.util.*;
 
 public class FileIOService implements FileIOInterface {
 
+    // ========== BOOKS ==========
     @Override
-    public List<Book> loadBooks(String filePath) {
-        List<Book> books = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length >= 6) {
-                    Book book = new Book(parts[0], parts[1], parts[2], parts[3]);
-                    book.setAvailable(parts[4].equalsIgnoreCase("available"));
-                    // parts[5] is borrowCount
-                    for (int i = 0; i < Integer.parseInt(parts[5]); i++) {
-                        book.incrementBorrowCount();
-                    }
-                    books.add(book);
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error loading books: " + e.getMessage());
-        }
-        return books;
-    }
-
-    @Override
-    public void saveBooks(String filePath, List<Book> books) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
-            for (Book book : books) {
-                bw.write(book.toString());
-                bw.newLine();
+    public void saveBooks(String filename, List<Book> books) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, false))) {
+            for (Book b : books) {
+                // Use the Book's toString() method which has the complete format
+                writer.write(b.toString());
+                writer.newLine();
             }
         } catch (IOException e) {
             System.out.println("Error saving books: " + e.getMessage());
@@ -45,28 +24,121 @@ public class FileIOService implements FileIOInterface {
     }
 
     @Override
-    public List<Member> loadMembers(String filePath) {
-        List<Member> members = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length >= 2) {
-                    members.add(new Member(parts[0], parts[1]));
-                }
-            }
+    public void appendBook(String filename, Book book) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
+            writer.write(book.toString());
+            writer.newLine();
         } catch (IOException e) {
-            System.out.println("Error loading members: " + e.getMessage());
+            System.out.println("Error appending book: " + e.getMessage());
         }
-        return members;
     }
 
     @Override
-    public void saveMembers(String filePath, List<Member> members) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
-            for (Member member : members) {
-                bw.write(member.toString());
-                bw.newLine();
+    public List<Book> loadBooks(String filename) {
+        List<Book> books = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                // Format: id,title,author,category,available/borrowed,currentBorrower(ID:Name),borrowCount,queue
+                if (parts.length >= 8) {
+                    String id = parts[0];
+                    String title = parts[1];
+                    String author = parts[2];
+                    String category = parts[3];
+                    
+                    Book book = new Book(id, title, author, category);
+                    
+                    // Set availability
+                    book.setAvailable(parts[4].equals("available"));
+                    
+                    // Set current borrower
+                    if (!parts[5].equals("none")) {
+                        String[] borrowerParts = parts[5].split(":");
+                        if (borrowerParts.length == 2) {
+                            book.setCurrentBorrower(borrowerParts[0], borrowerParts[1]);
+                        }
+                    }
+                    
+                    // Set borrow count
+                    int borrowCount = Integer.parseInt(parts[6]);
+                    for (int i = 0; i < borrowCount; i++) {
+                        book.incrementBorrowCount();
+                    }
+                    
+                    // Parse reservation queue
+                    String queueStr = parts[7];
+                    if (!queueStr.equals("[none]")) {
+                        // Remove brackets
+                        queueStr = queueStr.substring(1, queueStr.length() - 1);
+                        if (!queueStr.isEmpty()) {
+                            String[] reservations = queueStr.split(";");
+                            for (String reservation : reservations) {
+                                String[] resParts = reservation.split(":");
+                                if (resParts.length == 2) {
+                                    book.addToReservationQueue(resParts[0], resParts[1]);
+                                }
+                            }
+                        }
+                    }
+                    
+                    books.add(book);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading books: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.out.println("Error parsing book data: " + e.getMessage());
+        }
+        return books;
+    }
+
+    @Override
+    public void deleteBook(String filename, String bookId) {
+        List<Book> books = loadBooks(filename);
+        books.removeIf(b -> b.getId().equals(bookId));
+        saveBooks(filename, books);
+    }
+
+    // ========== MEMBERS ==========
+    @Override
+    public void saveMembers(String filename, List<Member> members) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, false))) {
+            for (Member m : members) {
+                // Format: id,name,borrowedBooks,reservations
+                StringBuilder sb = new StringBuilder();
+                sb.append(m.getId()).append(",");
+                sb.append(m.getName()).append(",");
+                
+                // Save borrowed book IDs
+                utils.SinglyLinkedList_Imp<String> borrowed = m.getBorrowedBookIds();
+                if (borrowed.isEmpty()) {
+                    sb.append("[none]");
+                } else {
+                    sb.append("[");
+                    for (int i = 0; i < borrowed.size(); i++) {
+                        sb.append(borrowed.get(i));
+                        if (i < borrowed.size() - 1) sb.append(";");
+                    }
+                    sb.append("]");
+                }
+                sb.append(",");
+                
+                // Save reservation queue
+                utils.SinglyLinkedList_Imp<String> reservations = m.getReservationQueue();
+                if (reservations.isEmpty()) {
+                    sb.append("[none]");
+                } else {
+                    sb.append("[");
+                    for (int i = 0; i < reservations.size(); i++) {
+                        sb.append(reservations.get(i));
+                        if (i < reservations.size() - 1) sb.append(";");
+                    }
+                    sb.append("]");
+                }
+                
+                writer.write(sb.toString());
+                writer.newLine();
             }
         } catch (IOException e) {
             System.out.println("Error saving members: " + e.getMessage());
@@ -74,39 +146,131 @@ public class FileIOService implements FileIOInterface {
     }
 
     @Override
-    public List<BorrowRecord> loadBorrowRecords(String filePath) {
-        List<BorrowRecord> records = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+    public void appendMember(String filename, Member member) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
+            writer.write(member.toString());
+            writer.newLine();
+        } catch (IOException e) {
+            System.out.println("Error appending member: " + e.getMessage());
+        }
+    }
+
+    public List<Member> loadMembers(String filename) {
+        List<Member> members = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
             String line;
-            while ((line = br.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
+                // Format: id,name,borrowedBooks,reservations
+                if (parts.length >= 2) {
+                    String id = parts[0];
+                    String name = parts[1];
+                    Member member = new Member(id, name);
+                    
+                    // Load borrowed books (if exists)
+                    if (parts.length >= 3 && !parts[2].equals("[none]")) {
+                        String borrowedStr = parts[2];
+                        // Remove brackets
+                        borrowedStr = borrowedStr.substring(1, borrowedStr.length() - 1);
+                        if (!borrowedStr.isEmpty()) {
+                            String[] bookIds = borrowedStr.split(";");
+                            for (String bookId : bookIds) {
+                                member.borrowBook(bookId);
+                            }
+                        }
+                    }
+                    
+                    // Load reservations (if exists)
+                    if (parts.length >= 4 && !parts[3].equals("[none]")) {
+                        String reservationStr = parts[3];
+                        // Remove brackets
+                        reservationStr = reservationStr.substring(1, reservationStr.length() - 1);
+                        if (!reservationStr.isEmpty()) {
+                            String[] bookIds = reservationStr.split(";");
+                            for (String bookId : bookIds) {
+                                member.addToReservationQueue(bookId);
+                            }
+                        }
+                    }
+                    
+                    members.add(member);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading members: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error parsing member data: " + e.getMessage());
+        }
+        return members;
+    }
+
+    @Override
+    public void deleteMember(String filename, String memberId) {
+        List<Member> members = loadMembers(filename);
+        members.removeIf(m -> m.getId().equals(memberId));
+        saveMembers(filename, members);
+    }
+
+    // ========== BORROW RECORDS ==========
+    @Override
+    public void saveBorrowRecords(String filename, List<BorrowRecord> records) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, false))) {
+            for (BorrowRecord br : records) {
+                // Format: bookId,memberId,memberName,borrowDate,returnDate
+                writer.write(br.toString());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving borrow records: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void appendBorrowRecord(String filename, BorrowRecord record) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
+            writer.write(record.toString());
+            writer.newLine();
+        } catch (IOException e) {
+            System.out.println("Error appending borrow record: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<BorrowRecord> loadBorrowRecords(String filename) {
+        List<BorrowRecord> records = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                // Format: bookId,memberId,memberName,borrowDate,returnDate
                 if (parts.length >= 4) {
                     String bookId = parts[0];
                     String memberId = parts[1];
-                    LocalDate borrowDate = LocalDate.parse(parts[2]);
-                    BorrowRecord record = new BorrowRecord(bookId, memberId, borrowDate);
-
-                    if (!parts[3].equalsIgnoreCase("not returned")) {
-                        record.setReturnDate(LocalDate.parse(parts[3]));
+                    String memberName = parts[2];
+                    LocalDate borrowDate = LocalDate.parse(parts[3]);
+                    
+                    BorrowRecord record = new BorrowRecord(bookId, memberId, memberName, borrowDate);
+                    
+                    // Set return date if present and not "not returned"
+                    if (parts.length == 5 && !parts[4].equals("not returned")) {
+                        record.setReturnDate(LocalDate.parse(parts[4]));
                     }
+                    
                     records.add(record);
                 }
             }
         } catch (IOException e) {
             System.out.println("Error loading borrow records: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error parsing borrow record: " + e.getMessage());
         }
         return records;
     }
 
     @Override
-    public void saveBorrowRecords(String filePath, List<BorrowRecord> borrowRecords) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
-            for (BorrowRecord record : borrowRecords) {
-                bw.write(record.toString());
-                bw.newLine();
-            }
-        } catch (IOException e) {
-            System.out.println("Error saving borrow records: " + e.getMessage());
-        }
+    public void deleteBorrowRecord(String filename, String memberId, String bookId) {
+        List<BorrowRecord> records = loadBorrowRecords(filename);
+        records.removeIf(r -> r.getMemberId().equals(memberId) && r.getBookId().equals(bookId));
+        saveBorrowRecords(filename, records);
     }
 }
