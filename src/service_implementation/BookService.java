@@ -51,6 +51,16 @@ public class BookService {
         }
         return false;
     }
+ // Add this method to BookService.java class
+
+    /**
+     * Sorts the books list alphabetically by title (A-Z)
+     * This modifies the internal list permanently
+     */
+    public void sortBooksAlphabetically() {
+        books.sort((a, b) -> a.getTitle().compareToIgnoreCase(b.getTitle()));
+        System.out.println("[BookService] Books sorted alphabetically by title");
+    }
     
  // In BookService.java
     public BookService(List<Book> booksList) {

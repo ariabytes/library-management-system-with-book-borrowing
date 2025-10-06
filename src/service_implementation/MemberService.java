@@ -209,7 +209,7 @@ public class MemberService implements MemberServiceInterface {
         for (int i = 0; i < books.size(); i++) {
             bookList.add(books.get(i));
         }
-        fileIO.saveBooks(booksFile, bookList);
+        fileIO.saveBooksAlphabetically(booksFile, bookList);
     }
 
     public Member findMemberByName(String name) {

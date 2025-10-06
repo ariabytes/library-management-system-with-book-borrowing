@@ -64,4 +64,26 @@ public class Queue_Imp<T> {
         sb.append("]");
         return sb.toString();
     }
+    public boolean removeItem(T data) {
+        if (isEmpty()) return false;
+
+        // If front node needs to be removed
+        if (front.data.equals(data)) {
+            front = front.next;
+            if (front == null) rear = null;
+            return true;
+        }
+
+        Node<T> current = front;
+        while (current.next != null) {
+            if (current.next.data.equals(data)) {
+                current.next = current.next.next;
+                if (current.next == null) rear = current;
+                return true;
+            }
+            current = current.next;
+        }
+        return false; // item not found
+    }
+
 }

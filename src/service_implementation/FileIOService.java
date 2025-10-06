@@ -22,6 +22,27 @@ public class FileIOService implements FileIOInterface {
             System.out.println("Error saving books: " + e.getMessage());
         }
     }
+ // Add this method to FileIOService.java class (after the existing saveBooks method)
+
+    /**
+     * Saves books to file in alphabetical order by title
+     */
+    public void saveBooksAlphabetically(String filename, List<Book> books) {
+        // Create a sorted copy
+        List<Book> sortedBooks = new ArrayList<>(books);
+        sortedBooks.sort((a, b) -> a.getTitle().compareToIgnoreCase(b.getTitle()));
+        
+        // Save the sorted list
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, false))) {
+            for (Book b : sortedBooks) {
+                writer.write(b.toString());
+                writer.newLine();
+            }
+            System.out.println("[FileIO] Books saved alphabetically to " + filename);
+        } catch (IOException e) {
+            System.out.println("Error saving books: " + e.getMessage());
+        }
+    }
 
     @Override
     public void appendBook(String filename, Book book) {
