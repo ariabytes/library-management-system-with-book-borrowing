@@ -48,24 +48,29 @@ public class menu {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
+        // === Background ===
         JLabel background = new JLabel();
         background.setOpaque(true);
         background.setBackground(new Color(30, 20, 20));
         background.setLayout(new GridBagLayout());
         frame.setContentPane(background);
 
+        // === Content Panel ===
         contentPanel = new JPanel(new BorderLayout(15, 15));
         contentPanel.setPreferredSize(new Dimension(1000, 600));
         contentPanel.setBackground(new Color(60, 20, 10, 220));
         contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
+        // === Title ===
         JLabel lblTitle = new JLabel("Library Management System", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Serif", Font.BOLD, 28));
         lblTitle.setForeground(new Color(255, 215, 0));
         contentPanel.add(lblTitle, BorderLayout.NORTH);
 
+        // === Table ===
         setupTable();
 
+        // === Main Buttons (Bottom) ===
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         buttonPanel.setOpaque(false);
 
@@ -84,21 +89,59 @@ public class menu {
         buttonPanel.add(btnUpdate);
         buttonPanel.add(btnDelete);
 
+        // === Homepage Button (Top Right) ===
+        JButton btnBackHome = new JButton("← Home");
+        btnBackHome.setBackground(new Color(100, 100, 100));
+        btnBackHome.setForeground(Color.WHITE);
+        btnBackHome.setFont(new Font("Arial", Font.BOLD, 12));
+        btnBackHome.setFocusPainted(false);
+        btnBackHome.setPreferredSize(new Dimension(90, 30));
+
+        JPanel topRightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        topRightPanel.setOpaque(false);
+        topRightPanel.add(btnBackHome);
+
+        // === Combine Panels ===
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setOpaque(false);
+        topPanel.add(topRightPanel, BorderLayout.EAST);
+
+        contentPanel.add(topPanel, BorderLayout.NORTH);
         contentPanel.add(buttonPanel, BorderLayout.SOUTH);
         background.add(contentPanel, new GridBagConstraints());
 
-        // Button actions
-        btnReservation.addActionListener(e -> { currentView = "RESERVATION"; showReservationData(); });
-        btnBooks.addActionListener(e -> { currentView = "BOOKS"; showBookData(); });
-        btnMembers.addActionListener(e -> { currentView = "MEMBERS"; showMemberData(); });
+        // === Button Actions ===
+        btnReservation.addActionListener(e -> {
+            currentView = "RESERVATION";
+            showReservationData();
+        });
+
+        btnBooks.addActionListener(e -> {
+            currentView = "BOOKS";
+            showBookData();
+        });
+
+        btnMembers.addActionListener(e -> {
+            currentView = "MEMBERS";
+            showMemberData();
+        });
 
         btnAdd.addActionListener(e -> addEntry());
         btnUpdate.addActionListener(e -> updateEntry());
         btnDelete.addActionListener(e -> deleteEntry());
 
+        btnBackHome.addActionListener(e -> {
+            frame.dispose();
+            SwingUtilities.invokeLater(() ->
+                new homepage(bookService, memberService, borrowService, fileIO)
+            );
+        });
+
+        // === Default View ===
         showBookData();
         frame.setVisible(true);
     }
+
 
     private void setupTable() {
         table = new JTable();

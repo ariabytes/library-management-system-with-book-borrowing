@@ -198,12 +198,18 @@ public class homepage {
         borrowButton.setPreferredSize(new Dimension(160, 40));
         reserveButton.setPreferredSize(new Dimension(160, 40));
         exitButton.setPreferredSize(new Dimension(160, 40));
+        JButton mostBorrowedButton = new JButton("📚 Most Borrowed");
+        mostBorrowedButton.setBackground(new Color(75, 0, 130));
+        mostBorrowedButton.setForeground(Color.WHITE);
+        mostBorrowedButton.setFont(new Font("Arial", Font.BOLD, 14));
+        mostBorrowedButton.setPreferredSize(new Dimension(160, 40));
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.setOpaque(false);
         buttonPanel.add(borrowButton);
         buttonPanel.add(reserveButton);
         buttonPanel.add(exitButton);
+        buttonPanel.add(mostBorrowedButton);
 
         gbc.gridx = 0;
         gbc.gridy = 3;
@@ -227,6 +233,7 @@ public class homepage {
         borrowButton.addActionListener(e -> handleBorrow(frame));
         reserveButton.addActionListener(e -> handleReserve(frame));
         exitButton.addActionListener(e -> System.exit(0));
+        mostBorrowedButton.addActionListener(e -> showMostBorrowedBook(frame));
 
         reserveButton.setEnabled(false);
         frame.setVisible(true);
@@ -377,5 +384,37 @@ public class homepage {
         } catch (Exception e) {
             return "";
         }
+    }
+    private void showMostBorrowedBook(JFrame parent) {
+        List<Book> allBooks = bookService.getAllBooks();
+        
+        if (allBooks.isEmpty()) {
+            JOptionPane.showMessageDialog(parent, 
+                "No books available in the library.", 
+                "No Books", 
+                JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        // Find the book with highest borrow count
+        Book mostBorrowed = allBooks.get(0);
+        for (Book book : allBooks) {
+            if (book.getBorrowCount() > mostBorrowed.getBorrowCount()) {
+                mostBorrowed = book;
+            }
+        }
+        
+        // Display the result
+        String message = "📚 MOST BORROWED BOOK 📚\n\n" +
+                        "Title: " + mostBorrowed.getTitle() + "\n" +
+                        "Author: " + mostBorrowed.getAuthor() + "\n" +
+                        "Category: " + mostBorrowed.getCategory() + "\n" +
+                        "Times Borrowed: " + mostBorrowed.getBorrowCount() + "\n" +
+                        "Status: " + (mostBorrowed.isAvailable() ? "Available" : "Currently Borrowed");
+        
+        JOptionPane.showMessageDialog(parent, 
+            message, 
+            "Most Popular Book", 
+            JOptionPane.INFORMATION_MESSAGE);
     }
 }
