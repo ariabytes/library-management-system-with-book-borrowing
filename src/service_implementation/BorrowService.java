@@ -84,6 +84,14 @@ public class BorrowService implements BorrowServiceInterface {
 
     @Override
     public boolean returnBook(String memberId, String bookId, LocalDate returnDate) {
+        // ✅ CRITICAL FIX: Reload borrow records from file to get latest data
+        this.borrowRecords = new SinglyLinkedList_Imp<>();
+        List<BorrowRecord> loadedRecords = fileIO.loadBorrowRecords(recordsFile);
+        for (BorrowRecord record : loadedRecords) {
+            borrowRecords.addLast(record);
+        }
+        System.out.println("[BorrowService] Reloaded " + borrowRecords.size() + " borrow records from file");
+        
         Book book = bookMap.get(bookId);
         Member member = memberMap.get(memberId);
 
@@ -103,18 +111,25 @@ public class BorrowService implements BorrowServiceInterface {
         if (book == null || member == null) return false;
 
         BorrowRecord record = null;
+        int recordIndex = -1;
         for (int i = 0; i < borrowRecords.size(); i++) {
             BorrowRecord r = borrowRecords.get(i);
             if (r.getBookId().equals(bookId) && r.getMemberId().equals(memberId) && r.getReturnDate() == null) {
                 record = r;
+                recordIndex = i;
+                System.out.println("[BorrowService] Found active borrow record at index " + i);
                 break;
             }
         }
 
-        if (record == null) return false;
+        if (record == null) {
+            System.out.println("[BorrowService] ERROR: No active borrow record found for book " + bookId + " and member " + memberId);
+            return false;
+        }
 
-        // ✅ Update the record
+        // ✅ Update the record with return date
         record.setReturnDate(returnDate);
+        System.out.println("[BorrowService] Set return date to: " + returnDate);
         
         // ✅ Update member - remove the borrowed book
         member.returnBook(bookId);
@@ -123,16 +138,8 @@ public class BorrowService implements BorrowServiceInterface {
         book.setAvailable(true);
         book.clearCurrentBorrower();
 
-        // ✅ CRITICAL: Update the book in the map and list
+        // ✅ Update the book in the map
         bookMap.put(book.getId(), book);
-        
-        // Update in the list as well
-        for (int i = 0; i < books.size(); i++) {
-            if (books.get(i).getId().equals(bookId)) {
-                // The book object is already modified (same reference), but ensure map is updated
-                break;
-            }
-        }
         
         // ✅ Update the member in the map
         memberMap.put(member.getId(), member);
@@ -142,6 +149,8 @@ public class BorrowService implements BorrowServiceInterface {
         saveBooks();
         saveMembers();
         saveBorrowRecords();
+        
+        System.out.println("[BorrowService] Return operation completed successfully");
 
         return true;
     }
@@ -237,6 +246,7 @@ public class BorrowService implements BorrowServiceInterface {
         List<BorrowRecord> recordList = new ArrayList<>();
         for (int i = 0; i < borrowRecords.size(); i++) recordList.add(borrowRecords.get(i));
         fileIO.saveBorrowRecords(recordsFile, recordList);
+        System.out.println("[BorrowService] Saved " + recordList.size() + " borrow records to file");
     }
     
 }

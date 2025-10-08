@@ -387,23 +387,22 @@ public class homepage {
     }
     private void showMostBorrowedBook(JFrame parent) {
         List<Book> allBooks = bookService.getAllBooks();
-        
+
         if (allBooks.isEmpty()) {
-            JOptionPane.showMessageDialog(parent, 
-                "No books available in the library.", 
-                "No Books", 
+            JOptionPane.showMessageDialog(parent,
+                "No books available in the library.",
+                "No Books",
                 JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-        
-        // Find the book with highest borrow count
-        Book mostBorrowed = allBooks.get(0);
-        for (Book book : allBooks) {
-            if (book.getBorrowCount() > mostBorrowed.getBorrowCount()) {
-                mostBorrowed = book;
-            }
-        }
-        
+
+        // ✅ Use your custom MaxHeap implementation
+        utils.MaxHeap_Imp<Book> heap = new utils.MaxHeap_Imp<>();
+        heap.buildHeap(allBooks);
+
+        // Get the book with highest borrow count
+        Book mostBorrowed = heap.getMax();
+
         // Display the result
         String message = "📚 MOST BORROWED BOOK 📚\n\n" +
                         "Title: " + mostBorrowed.getTitle() + "\n" +
@@ -411,10 +410,10 @@ public class homepage {
                         "Category: " + mostBorrowed.getCategory() + "\n" +
                         "Times Borrowed: " + mostBorrowed.getBorrowCount() + "\n" +
                         "Status: " + (mostBorrowed.isAvailable() ? "Available" : "Currently Borrowed");
-        
-        JOptionPane.showMessageDialog(parent, 
-            message, 
-            "Most Popular Book", 
+
+        JOptionPane.showMessageDialog(parent,
+            message,
+            "Most Popular Book",
             JOptionPane.INFORMATION_MESSAGE);
     }
 }

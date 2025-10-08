@@ -386,7 +386,6 @@ public class menu {
                             
                             // ✅ CRITICAL: Create borrow record for member2
                             try {
-                                // Create a new borrow record
                                 model.BorrowRecord newRecord = new model.BorrowRecord(
                                     bookId, 
                                     nextMember.getId(), 
@@ -394,11 +393,16 @@ public class menu {
                                     LocalDate.now()
                                 );
                                 
-                                // Append to borrow records file
-                                fileIO.appendBorrowRecord("borrow_records.txt", newRecord);
-                                System.out.println("[DEBUG] Borrow record created for member2: " + nextMember.getName());
+                                // Load all records, add new one, save all
+                                List<model.BorrowRecord> allRecords = fileIO.loadBorrowRecords("borrow_records.txt");
+                                allRecords.add(newRecord);
+                                fileIO.saveBorrowRecords("borrow_records.txt", allRecords);
+                                
+                                System.out.println("[DEBUG] ✅ Borrow record created for " + nextMember.getName() + 
+                                                 " (ID: " + nextMember.getId() + ") - Book: " + bookId);
                             } catch (Exception e) {
-                                System.out.println("[ERROR] Failed to create borrow record: " + e.getMessage());
+                                System.out.println("[ERROR] ❌ Failed to create borrow record: " + e.getMessage());
+                                e.printStackTrace();
                             }
                             
                             JOptionPane.showMessageDialog(frame, 
@@ -426,7 +430,7 @@ public class menu {
                 book.setCategory(newCategory);
                 
                 // ✅ Save the book changes
-                fileIO.saveBooksAlphabetically("books.txt", bookService.getAllBooks());
+                fileIO.saveBooks("books.txt", bookService.getAllBooks());
                 System.out.println("[DEBUG] Book saved - Status: " + (book.isAvailable() ? "Available" : "Borrowed"));
 
                 // ✅ Refresh
