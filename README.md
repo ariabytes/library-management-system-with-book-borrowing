@@ -1,4 +1,4 @@
-# Library Management System (Conceptual)
+# Library Management System
 
 ## Overview
 
